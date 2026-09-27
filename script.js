@@ -1,68 +1,187 @@
-const taskInput = document.getElementById("taskInput");
-const dateInput = document.getElementById("dateInput");
-const taskList = document.getElementById("taskList");
+const nameField = document.getElementById("taskName");
+const dateField = document.getElementById("taskDate");
+const priorityField = document.getElementById("taskPriority");
+const addButton = document.getElementById("addBtn");
+const taskContainer = document.getElementById("taskContainer");
+const filterBox = document.getElementById("filterTasks");
+const themeButton = document.getElementById("themeBtn");
 
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-let theme = localStorage.getItem("theme") || "light";
+const totalDisplay = document.getElementById("totalTasks");
+const completedDisplay = document.getElementById("finishedTasks");
+const progressDisplay = document.getElementById("progressValue");
+const emptyMessage = document.getElementById("emptyMessage");
 
-document.body.className = theme;
+let taskData = JSON.parse(localStorage.getItem("plannerTasks")) || [];
+let currentTheme = localStorage.getItem("plannerTheme") || "light";
 
-function save() {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    localStorage.setItem("theme", document.body.className);
-}
+document.body.classList.toggle("dark-mode", currentTheme === "dark");
+themeButton.textContent = currentTheme === "dark" ? "☀️" : "🌙";
 
-function toggleTheme() {
-    document.body.className =
-        document.body.className === "dark" ? "light" : "dark";
-    save();
-}
+addButton.addEventListener("click", createTask);
+themeButton.addEventListener("click", switchTheme);
+filterBox.addEventListener("change", displayTasks);
 
-function addTask() {
-    if (!taskInput.value || !dateInput.value)
-        return alert("Enter task & date");
+function createTask() {
+    const title = nameField.value.trim();
+    const deadline = dateField.value;
 
-    tasks.push({
-        text: taskInput.value,
-        date: dateInput.value,
+    if (title === "" || deadline === "") {
+        alert("Please enter a task and select a date.");
+        return;
+    }
+
+    const newTask = {
+        id: Date.now(),
+        title: title,
+        deadline: deadline,
+        priority: priorityField.value,
         completed: false
-    });
+    };
 
-    taskInput.value = "";
-    dateInput.value = "";
-    save();
-    render();
+    taskData.push(newTask);
+
+    saveTasks();
+
+    nameField.value = "";
+    dateField.value = "";
+    priorityField.value = "Medium";
+
+    displayTasks();
 }
 
-function render() {
-    taskList.innerHTML = "";
-    const today = new Date().toISOString().split("T")[0];
+function displayTasks() {
+    taskContainer.innerHTML = "";
 
-    tasks.forEach((task, i) => {
-        const li = document.createElement("li");
-        if (task.date < today && !task.completed) li.classList.add("overdue");
+    const selectedFilter = filterBox.value;
 
-        li.innerHTML = `
-          <span class="${task.completed ? "completed" : ""}"
-                onclick="toggle(${i})">
-            ${task.text} (📅 ${task.date})
-          </span>
-          <button onclick="del(${i})">❌</button>
+    let visibleTasks = taskData;
+
+    if (selectedFilter === "pending") {
+        visibleTasks = taskData.filter(task => !task.completed);
+    }
+
+    if (selectedFilter === "completed") {
+        visibleTasks = taskData.filter(task => task.completed);
+    }
+
+    if (visibleTasks.length === 0) {
+        emptyMessage.style.display = "block";
+    } else {
+        emptyMessage.style.display = "none";
+    }
+
+    visibleTasks.forEach(task => {
+        const item = document.createElement("li");
+
+        if (task.completed) {
+            item.classList.add("done");
+        }
+
+        const today = new Date().toISOString().split("T")[0];
+
+        if (task.deadline < today && !task.completed) {
+            item.classList.add("late");
+        }
+
+        item.innerHTML = `
+            <div class="task-info">
+                <h3>${escapeText(task.title)}</h3>
+                <p>📅 ${task.deadline}</p>
+                <span class="priority ${task.priority.toLowerCase()}">
+                    ${task.priority}
+                </span>
+            </div>
+
+            <div class="task-actions">
+                <button onclick="completeTask(${task.id})">
+                    ${task.completed ? "↩️" : "✓"}
+                </button>
+
+                <button onclick="editTask(${task.id})">
+                    ✏️
+                </button>
+
+                <button onclick="removeTask(${task.id})">
+                    🗑️
+                </button>
+            </div>
         `;
-        taskList.appendChild(li);
+
+        taskContainer.appendChild(item);
     });
+
+    updateSummary();
 }
 
-function toggle(i) {
-    tasks[i].completed = !tasks[i].completed;
-    save();
-    render();
+function completeTask(taskId) {
+    const selectedTask = taskData.find(task => task.id === taskId);
+
+    if (selectedTask) {
+        selectedTask.completed = !selectedTask.completed;
+        saveTasks();
+        displayTasks();
+    }
 }
 
-function del(i) {
-    tasks.splice(i, 1);
-    save();
-    render();
+function editTask(taskId) {
+    const selectedTask = taskData.find(task => task.id === taskId);
+
+    if (!selectedTask) {
+        return;
+    }
+
+    const updatedTitle = prompt("Edit task name:", selectedTask.title);
+
+    if (updatedTitle === null || updatedTitle.trim() === "") {
+        return;
+    }
+
+    selectedTask.title = updatedTitle.trim();
+
+    saveTasks();
+    displayTasks();
 }
 
-render();
+function removeTask(taskId) {
+    taskData = taskData.filter(task => task.id !== taskId);
+
+    saveTasks();
+    displayTasks();
+}
+
+function updateSummary() {
+    const total = taskData.length;
+    const completed = taskData.filter(task => task.completed).length;
+
+    const percentage = total === 0
+        ? 0
+        : Math.round((completed / total) * 100);
+
+    totalDisplay.textContent = total;
+    completedDisplay.textContent = completed;
+    progressDisplay.textContent = percentage + "%";
+}
+
+function switchTheme() {
+    document.body.classList.toggle("dark-mode");
+
+    const darkEnabled = document.body.classList.contains("dark-mode");
+
+    currentTheme = darkEnabled ? "dark" : "light";
+
+    themeButton.textContent = darkEnabled ? "☀️" : "🌙";
+
+    localStorage.setItem("plannerTheme", currentTheme);
+}
+
+function saveTasks() {
+    localStorage.setItem("plannerTasks", JSON.stringify(taskData));
+}
+
+function escapeText(value) {
+    const element = document.createElement("div");
+    element.textContent = value;
+    return element.innerHTML;
+}
+
+displayTasks();
