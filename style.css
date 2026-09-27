@@ -1,0 +1,64 @@
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+    --card: #f3f3f3;
+}
+
+.dark {
+    --bg: #1e1e1e;
+    --text: #ffffff;
+    --card: #2e2e2e;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 360px;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-box {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+input, button {
+    padding: 8px;
+}
+
+button {
+    cursor: pointer;
+}
+
+li {
+    margin-top: 10px;
+    background: var(--bg);
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.completed {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.overdue {
+    border-left: 4px solid red;
+}
