@@ -2,26 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Smart Daily Planner Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Daily Planner</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="container">
-    <div class="top">
-        <h1>📝 Planner Pro</h1>
-        <button onclick="toggleTheme()">🌙</button>
-    </div>
+    <main class="planner">
+        <header class="header">
+            <div>
+                <p class="subtitle">My Productivity Space</p>
+                <h1>Smart Daily Planner</h1>
+            </div>
 
-    <div class="input-box">
-        <input type="text" id="taskInput" placeholder="Task name">
-        <input type="date" id="dateInput">
-        <button onclick="addTask()">Add</button>
-    </div>
+            <button id="themeBtn" class="theme-btn">🌙</button>
+        </header>
 
-    <ul id="taskList"></ul>
-</div>
+        <section class="task-form">
+            <input
+                type="text"
+                id="taskName"
+                placeholder="What do you need to do?"
+            >
 
-<script src="script.js"></script>
+            <input type="date" id="taskDate">
+
+            <select id="taskPriority">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+            </select>
+
+            <button id="addBtn">Add Task</button>
+        </section>
+
+        <section class="summary">
+            <div>
+                <strong id="totalTasks">0</strong>
+                <span>Total</span>
+            </div>
+
+            <div>
+                <strong id="finishedTasks">0</strong>
+                <span>Completed</span>
+            </div>
+
+            <div>
+                <strong id="progressValue">0%</strong>
+                <span>Progress</span>
+            </div>
+        </section>
+
+        <div class="list-header">
+            <h2>Today's Tasks</h2>
+
+            <select id="filterTasks">
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+
+        <ul id="taskContainer"></ul>
+
+        <p id="emptyMessage">No tasks added yet.</p>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
